@@ -5,7 +5,6 @@ import { BASE_PROMPT, getSystemPrompt } from "./prompts";
 import express from "express";
 import { reactbasePrompt } from "./defaults/react";
 import { nodebasePrompt } from "./defaults/node";
-import cors from "cors";
 
 const app = express();
 const token = process.env["OPENAI_API_KEY"];
