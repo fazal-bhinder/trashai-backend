@@ -5,7 +5,7 @@ import { BASE_PROMPT, getSystemPrompt } from "./prompts";
 import express from "express";
 import { reactbasePrompt } from "./defaults/react";
 import { nodebasePrompt } from "./defaults/node";
-
+import cors from "cors"
 const app = express();
 const token = process.env["OPENAI_API_KEY"];
 const endpoint = "https://models.inference.ai.azure.com";
@@ -17,7 +17,7 @@ const allowedOrigins = [
 
 
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: function (origin: any, callback: any) {
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
