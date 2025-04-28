@@ -5,30 +5,13 @@ import { BASE_PROMPT, getSystemPrompt } from "./prompts";
 import express from "express";
 import { reactbasePrompt } from "./defaults/react";
 import { nodebasePrompt } from "./defaults/node";
-import cors from "cors"
+import cors from "cors";
+
 const app = express();
 const token = process.env["OPENAI_API_KEY"];
-const endpoint = "https://models.inference.ai.azure.com"; 
-
+const endpoint = "https://models.inference.ai.azure.com";
+app.use(cors())
 app.use(express.json());
-const allowedOrigins = [
-  "https://trashai-frontend.vercel.app", 
-  "http://localhost:3000" 
-];
-
-
-app.use(cors({
-  origin: function (origin: any, callback: any) {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
 
 app.post("/template", async (req  , res) => {
 
@@ -71,6 +54,7 @@ app.post("/template", async (req  , res) => {
     res.status(403).json({
       msg : "Error in the server"
     })
+
     return;
 
 });
@@ -80,7 +64,7 @@ app.post("/template", async (req  , res) => {
 
 // chat route
 app.post("/chat", async (req, res) => {
-
+ 
   const messages = req.body.messages;
 
   const client = new OpenAI({
@@ -116,6 +100,7 @@ app.post("/chat", async (req, res) => {
   }
 });
 
+// Start server
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
 });
