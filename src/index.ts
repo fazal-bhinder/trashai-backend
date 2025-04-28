@@ -12,11 +12,27 @@ const token = process.env["OPENAI_API_KEY"];
 const endpoint = "https://models.inference.ai.azure.com";
 app.use(cors())
 app.use(express.json());
+const allowedOrigins = [
+  "https://trashai-frontend.vercel.app", 
+  "http://localhost:3000" 
+];
+
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.post("/template", async (req  , res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://trashai-frontend.vercel.app/'); 
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
      const prompt = req.body.prompt;
 
      const client = new OpenAI({
@@ -65,9 +81,7 @@ app.post("/template", async (req  , res) => {
 
 // chat route
 app.post("/chat", async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://trashai-frontend.vercel.app/'); 
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
   const messages = req.body.messages;
 
   const client = new OpenAI({
