@@ -8,7 +8,8 @@ import { nodebasePrompt } from "./defaults/node";
 import cors from "cors"
 const app = express();
 const token = process.env["OPENAI_API_KEY"];
-const endpoint = "https://models.inference.ai.azure.com";
+const endpoint = "https://models.inference.ai.azure.com"; 
+
 app.use(express.json());
 const allowedOrigins = [
   "https://trashai-frontend.vercel.app", 
@@ -115,4 +116,6 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-export default app;
+app.listen(3000, () => {
+  console.log("Server is running on port 3000");
+});
