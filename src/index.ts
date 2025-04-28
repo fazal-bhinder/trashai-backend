@@ -14,7 +14,7 @@ app.use(cors())
 app.use(express.json());
 
 app.post("/template", async (req  , res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://vercel.com/fazal-bhinders-projects/trashai-frontend'); 
+  res.setHeader('Access-Control-Allow-Origin', 'https://trashai-frontend.vercel.app/'); 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
      const prompt = req.body.prompt;
@@ -65,7 +65,7 @@ app.post("/template", async (req  , res) => {
 
 // chat route
 app.post("/chat", async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', 'https://vercel.com/fazal-bhinders-projects/trashai-frontend'); 
+  res.setHeader('Access-Control-Allow-Origin', 'https://trashai-frontend.vercel.app/'); 
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   const messages = req.body.messages;
@@ -103,7 +103,4 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-// Start server
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
-});
+export default app;
