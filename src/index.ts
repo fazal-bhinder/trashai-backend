@@ -9,7 +9,6 @@ import { nodebasePrompt } from "./defaults/node";
 const app = express();
 const token = process.env["OPENAI_API_KEY"];
 const endpoint = "https://models.inference.ai.azure.com";
-app.use(cors())
 app.use(express.json());
 const allowedOrigins = [
   "https://trashai-frontend.vercel.app", 
