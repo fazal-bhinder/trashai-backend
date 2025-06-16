@@ -11,6 +11,7 @@ import { nodebasePrompt } from "./defaults/node";
 const app = express();
 const apiKey = process.env["OPENROUTER_API_KEY"] || "";
 const model = "deepseek/deepseek-r1-0528";
+const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -103,6 +104,6 @@ app.post("/chat", async (req: any, res: any) => {
 });
 
 // Start server
-app.listen(3001, () => {
-  console.log("Server running on port 3001");
+app.listen(port, () => {
+  console.log("Server running on port ", port);
 });
