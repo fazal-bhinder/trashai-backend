@@ -1,6 +1,8 @@
-require("dotenv").config();
+import * as dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
+import fetch from "node-fetch";
 
 import { BASE_PROMPT, getSystemPrompt } from "./prompts";
 import { reactbasePrompt } from "./defaults/react";
@@ -33,12 +35,14 @@ async function callOpenRouter(messages: any[]) {
     throw new Error(`OpenRouter API error: ${response.status} ${errorBody}`);
   }
 
-  const data = await response.json();
+  const data = await response.json() as {
+    choices: { message?: { content?: string } }[];
+  };
   return data.choices[0]?.message?.content?.trim();
 }
 
 // POST /template
-app.post("/template", async (req, res) => {
+app.post("/template", async (req: any, res: any) => {
   const prompt = req.body.prompt;
 
   try {
@@ -82,7 +86,7 @@ app.post("/template", async (req, res) => {
 });
 
 // POST /chat
-app.post("/chat", async (req, res) => {
+app.post("/chat", async (req: any, res: any) => {
   const messages = req.body.messages;
 
   try {
