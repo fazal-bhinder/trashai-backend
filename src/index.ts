@@ -1,101 +1,104 @@
-require("dotenv").config(); 
-import OpenAI from "openai";
-import 'dotenv/config';
-import { BASE_PROMPT, getSystemPrompt } from "./prompts";
+require("dotenv").config();
 import express from "express";
-import { reactbasePrompt } from "./defaults/react";
-import { nodebasePrompt } from "./defaults/node";
 import cors from "cors";
 
+import { BASE_PROMPT, getSystemPrompt } from "./prompts";
+import { reactbasePrompt } from "./defaults/react";
+import { nodebasePrompt } from "./defaults/node";
+
 const app = express();
-const token = process.env["OPENAI_API_KEY"];
-const endpoint = "https://models.inference.ai.azure.com";
-app.use(cors())
+const apiKey = process.env["OPENROUTER_API_KEY"] || "";
+const model = "deepseek/deepseek-r1-0528";
+
+app.use(cors());
 app.use(express.json());
 
-app.post("/template", async (req  , res) => {
-     const prompt = req.body.prompt;
+// Helper to make OpenRouter requests
+async function callOpenRouter(messages: any[]) {
+  const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: messages,
+      max_tokens: 8000
+    }),
+  });
 
-     const client = new OpenAI({
-      baseURL: endpoint,
-      apiKey: token
-    });
-  
-    const response = await client.chat.completions.create({
-      messages: [
-        { role: "system", content: "Only answer with one word: 'react' or 'node' based on the following project description.Do not return anything extra" },
-        { role:"user", content: prompt },
-      ],
-      model: "gpt-4.1-mini",
-      temperature: 1,
-      max_tokens: 100,
-      top_p: 1,
-    });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`OpenRouter API error: ${response.status} ${errorBody}`);
+  }
 
-    const answer = (response.choices[0]?.message as { content: string })?.content?.trim();
+  const data = await response.json();
+  return data.choices[0]?.message?.content?.trim();
+}
 
-    if (answer === "react"){
+// POST /template
+app.post("/template", async (req, res) => {
+  const prompt = req.body.prompt;
+
+  try {
+    const answer = await callOpenRouter([
+      {
+        role: "system",
+        content:
+          "Only answer with one word: 'react' or 'node' based on the following project description. Do not return anything extra.",
+      },
+      { role: "user", content: prompt },
+    ]);
+
+    console.log("Answer from OpenRouter:", answer);
+
+    if (answer === "react") {
       res.json({
-        prompts : [BASE_PROMPT, `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactbasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
-        uiPrompts: [reactbasePrompt]
-      })
+        prompts: [
+          BASE_PROMPT,
+          `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${reactbasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+        ],
+        uiPrompts: [reactbasePrompt],
+      });
       return;
     }
 
-    if (answer === "node"){
+    if (answer === "node") {
       res.json({
-        prompts : [`Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${nodebasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`],
-        uiPrompts: [nodebasePrompt]
-      })
+        prompts: [
+          `Here is an artifact that contains all files of the project visible to you.\nConsider the contents of ALL files in the project.\n\n${nodebasePrompt}\n\nHere is a list of files that exist on the file system but are not being shown to you:\n\n  - .gitignore\n  - package-lock.json\n`,
+        ],
+        uiPrompts: [nodebasePrompt],
+      });
       return;
     }
 
-    res.status(403).json({
-      msg : "Error in the server"
-    })
-    return;
-
+    res.status(403).json({ msg: "Unexpected response format" });
+  } catch (error) {
+    console.error("Error in /template:", error);
+    res.status(500).json({ msg: "Internal Server Error" });
+  }
 });
 
-
-// chat route
+// POST /chat
 app.post("/chat", async (req, res) => {
   const messages = req.body.messages;
 
-  const client = new OpenAI({
-    baseURL: endpoint,
-    apiKey: token
-  });
-
   try {
-    const response = await client.chat.completions.create({
-      messages: [
-        { role: "system", content: getSystemPrompt() }, 
-        ...messages,
-      ],
-      model: "gpt-4.1-mini",
-      temperature: 0.8,
-      max_tokens: 2048,
-      top_p: 0.1
+    const answer = await callOpenRouter([
+      { role: "system", content: getSystemPrompt() },
+      ...messages,
+    ]);
 
-    });
-
-    const answer = (response.choices[0]?.message as { content: string })?.content?.trim();
-
-    res.json({
-      response: answer,
-    });
-    return;
+    res.json({ response: answer });
   } catch (error) {
     console.error("Error in /chat:", error);
-    res.status(500).json({
-      msg: "Internal Server Error"
-    });
-    return;
+    res.status(500).json({ msg: "Internal Server Error" });
   }
 });
 
 // Start server
-app.listen(3000, () => {
-  console.log("Server is running on port 3000");
+app.listen(3001, () => {
+  console.log("Server running on port 3001");
 });
