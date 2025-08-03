@@ -22,9 +22,8 @@ app.use(cors());
 app.use(express.json());
 
 async function callGemini(messages: { role: string; content: string }[]) {
-  // Combine messages into a single string
-  const content = messages.map(m => `${m.role === "user" ? "User" : "System"}: ${m.content}`).join("\n");
 
+  const content = messages.map(m => `${m.role === "user" ? "User" : "System"}: ${m.content}`).join("\n");
   const result = await model.generateContent(content);
   const response = await result.response;
   const text = response.text();
@@ -45,8 +44,6 @@ app.post("/template", async (req: any, res: any) => {
       },
       { role: "user", content: prompt },
     ]);
-
-    console.log("Answer from Gemini:", answer);
 
     if (answer === "react") {
       res.json({
